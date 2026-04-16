@@ -57,11 +57,25 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
+import androidx.compose.runtime.LaunchedEffect
+import android.content.Context
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @Composable
 fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
     val gameUiState by gameViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
+    val context = LocalContext.current
+    val sharedPref = context.getSharedPreferences("WORDS", Context.MODE_PRIVATE)
+
+    LaunchedEffect(Unit) {
+        val savedWords = sharedPref.getStringSet("DATA", emptySet())
+        savedWords?.forEach {
+            gameViewModel.addWord(it)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -116,7 +130,37 @@ fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
                     fontSize = 16.sp
                 )
             }
+            var newWord by remember { mutableStateOf("") }
+
+            OutlinedTextField(
+                value = newWord,
+                onValueChange = { newWord = it },
+                label = { Text("Tambah kata baru") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Button(
+                onClick = {
+                    gameViewModel.addWord(newWord)
+
+                    val savedWords = sharedPref
+                        .getStringSet("DATA", mutableSetOf())!!
+                        .toMutableSet()
+
+                    savedWords.add(newWord)
+
+                    sharedPref.edit()
+                        .putStringSet("DATA", savedWords)
+                        .apply()
+
+                    newWord = ""
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Simpan Kata")
+            }
         }
+
 
         GameStatus(score = gameUiState.score, modifier = Modifier.padding(20.dp))
 

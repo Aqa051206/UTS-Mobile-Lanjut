@@ -122,6 +122,10 @@ class GameViewModelTest {
         assertTrue(currentGameUiState.isGameOver)
     }
 
+    fun simpan(){
+
+    }
+
     companion object {
         private const val SCORE_AFTER_FIRST_CORRECT_ANSWER = SCORE_INCREASE
     }
